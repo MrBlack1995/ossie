@@ -39,3 +39,4 @@ metrics:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(sales.amount)
+    datatype: Decimal

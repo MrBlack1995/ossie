@@ -19,11 +19,13 @@
 
 # Portability measurement ladder (M0-M3)
 
-A small set of portable fixtures for measuring how faithfully a model survives a
-round-trip through each converter. This is the fixture half of issue #576
-(measurements for model portability across converters). The scoring half is a
-grader that diffs each returned document against the input element by element;
-that lives with the interoperability harness in #348, not here.
+A small set of portable fixtures, and a grader, for measuring how faithfully a
+model survives a round-trip through each converter. This is issue #576
+(measurements for model portability across converters). The fixtures are the
+inputs; `grader/` scores each returned document against its input, element by
+element, into the outcome vocabulary in `manifest.yaml`. A thin runner that drives
+the converters (modelled on `converters/cube/tools/interop_matrix.py`) turns the
+whole thing into one command; the grader is written to sit behind it.
 
 ## What is here
 
@@ -38,8 +40,11 @@ difference in a converter's output localizes to a single construct:
 | M3 | a filtered aggregate | `SUM(CASE WHEN ... THEN x ELSE 0 END)` |
 
 `manifest.yaml` lists the fixtures, the element each rung exercises, and the
-per-element outcome vocabulary a grader assigns (PORTABLE, SURVIVED-vendor-only,
-ADDED, RELABELED, DROPPED-diagnosed, DROPPED-silent, REJECTED).
+per-element outcome vocabulary the grader assigns (PORTABLE / TAG_PRESERVED,
+REWRITTEN, SURVIVED-vendor-only, PLACEHOLDER, ADDED, RELABELED,
+DROPPED-diagnosed, DROPPED-silent, REJECTED). `grader/grade.py` implements it
+and `grader/test_grade.py` has one test per outcome plus an identity check that
+grades the real fixtures all-PORTABLE. See `grader/README.md`.
 
 ## Design rules
 

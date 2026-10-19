@@ -42,3 +42,4 @@ metrics:
       dialects:
         - dialect: OSSIE_SQL_2026
           expression: SUM(sales.amount)
+    datatype: Decimal

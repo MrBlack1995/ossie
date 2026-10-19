@@ -44,3 +44,4 @@ metrics:
       dialects:
         - dialect: ANSI_SQL
           expression: SUM(amount)
+    datatype: Decimal
