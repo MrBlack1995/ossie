@@ -25,8 +25,8 @@ this grader is the fidelity half.
 
 It does not drive the converters. It takes the input document and the document a
 converter returned, and diffs them element by element into the outcome vocabulary
-in `../manifest.yaml`. A thin runner (modelled on
-`converters/cube/tools/interop_matrix.py`) drives each converter and feeds the
+in `../manifest.yaml`. A thin runner (modelled on `cube/tools/interop_matrix.py` in
+apache/ossie-converters) drives each converter and feeds the
 grader, so the measurement table becomes one command.
 
 ## Usage

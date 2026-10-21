@@ -23,7 +23,7 @@ with? Conformance (``validate.py`` passing) is a floor and says nothing about
 fidelity; this grader is the fidelity half.
 
 It does NOT drive the converters: that is the thin runner's job (modelled on
-``converters/cube/tools/interop_matrix.py``). It takes the input document and the
+``cube/tools/interop_matrix.py`` in apache/ossie-converters). It takes the input document and the
 document a converter returned, and diffs them element by element into the outcome
 vocabulary in ``../manifest.yaml``:
 
