@@ -108,6 +108,19 @@ def test_sql_form_wins_over_an_ossiesql_dialect_entry():
     assert _only(grade.grade(src, returned)).outcome == grade.PORTABLE
 
 
+def test_sql_form_is_the_authored_tag_next_to_an_ansi_entry():
+    # The spec's examples carry `sql` plus an ANSI_SQL copy; the authored tag is the
+    # primary `sql` form, so returning only `sql` is a correct, tag-preserving return.
+    src = _doc(metrics=[{"name": "total", "expression": {
+        "sql": "SUM(a)",
+        "dialects": [{"dialect": "ANSI_SQL", "expression": "SUM(a)"}],
+    }}])
+    returned = _doc(metrics=[_sql_metric("total", "SUM(a)")])
+    finding = _only(grade.grade(src, returned))
+    assert finding.outcome == grade.PORTABLE
+    assert finding.tag_preserved is True
+
+
 def test_relabeled_when_tag_changes_but_text_is_kept():
     src = _doc(metrics=[_metric("total", "OSSIE_SQL_2026", "SUM(sales.amount)")])
     returned = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(sales.amount)")])

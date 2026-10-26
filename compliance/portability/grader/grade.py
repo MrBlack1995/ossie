@@ -143,17 +143,21 @@ def _dialect_map(expression_obj):
     """Return {dialect: normalized expression} for one expression object.
 
     The portable ``sql`` form is OSSIE_SQL_2026 by definition, so it is read under
-    that tag; as the primary form it wins over an OSSIE_SQL_2026 entry in
-    ``dialects``.
+    that tag. It goes in first, so ``_authored_tag`` (first portable key) resolves to
+    it ahead of an ANSI_SQL entry, and as the primary form it wins over an
+    OSSIE_SQL_2026 entry in ``dialects``.
     """
     result = {}
     if not isinstance(expression_obj, dict):
         return result
+    has_sql = isinstance(expression_obj.get("sql"), str) and bool(expression_obj["sql"].strip())
+    if has_sql:
+        result["OSSIE_SQL_2026"] = _normalize(expression_obj["sql"])
     for entry in expression_obj.get("dialects") or []:
         if isinstance(entry, dict) and entry.get("dialect") is not None:
+            if has_sql and entry["dialect"] == "OSSIE_SQL_2026":
+                continue
             result[entry["dialect"]] = _normalize(entry.get("expression"))
-    if isinstance(expression_obj.get("sql"), str) and expression_obj["sql"].strip():
-        result["OSSIE_SQL_2026"] = _normalize(expression_obj["sql"])
     return result
 
 
