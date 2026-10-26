@@ -69,6 +69,45 @@ def test_portable_ossiesql_sets_tag_preserved():
     assert finding.tag_preserved is True
 
 
+def _sql_metric(name, expression):
+    return {"name": name, "expression": {"sql": expression}}
+
+
+def test_portable_sql_form_is_read_as_ossiesql():
+    doc = _doc(metrics=[_sql_metric("total", "SUM(sales.amount)")])
+    finding = _only(grade.grade(doc, doc))
+    assert finding.outcome == grade.PORTABLE
+    assert finding.tag_preserved is True
+
+
+def test_sql_form_returned_as_an_ossiesql_dialect_entry_is_portable():
+    src = _doc(metrics=[_sql_metric("total", "SUM(sales.amount)")])
+    returned = _doc(metrics=[_metric("total", "OSSIE_SQL_2026", "SUM(sales.amount)")])
+    assert _only(grade.grade(src, returned)).outcome == grade.PORTABLE
+
+
+def test_ossiesql_dialect_entry_returned_in_the_sql_form_is_portable():
+    src = _doc(metrics=[_metric("total", "OSSIE_SQL_2026", "SUM(sales.amount)")])
+    returned = _doc(metrics=[_sql_metric("total", "SUM(sales.amount)")])
+    assert _only(grade.grade(src, returned)).outcome == grade.PORTABLE
+
+
+def test_ansi_input_returned_in_the_sql_form_is_relabeled():
+    src = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(sales.amount)")])
+    returned = _doc(metrics=[_sql_metric("total", "SUM(sales.amount)")])
+    assert _only(grade.grade(src, returned)).outcome == grade.RELABELED
+
+
+def test_sql_form_wins_over_an_ossiesql_dialect_entry():
+    expression = {
+        "sql": "SUM(sales.amount)",
+        "dialects": [{"dialect": "OSSIE_SQL_2026", "expression": "MIN(sales.amount)"}],
+    }
+    src = _doc(metrics=[{"name": "total", "expression": expression}])
+    returned = _doc(metrics=[_sql_metric("total", "SUM(sales.amount)")])
+    assert _only(grade.grade(src, returned)).outcome == grade.PORTABLE
+
+
 def test_relabeled_when_tag_changes_but_text_is_kept():
     src = _doc(metrics=[_metric("total", "OSSIE_SQL_2026", "SUM(sales.amount)")])
     returned = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(sales.amount)")])

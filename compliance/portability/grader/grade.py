@@ -140,12 +140,20 @@ def _equivalent_tree(left, right):
 
 
 def _dialect_map(expression_obj):
+    """Return {dialect: normalized expression} for one expression object.
+
+    The portable ``sql`` form is OSSIE_SQL_2026 by definition, so it is read under
+    that tag; as the primary form it wins over an OSSIE_SQL_2026 entry in
+    ``dialects``.
+    """
     result = {}
     if not isinstance(expression_obj, dict):
         return result
     for entry in expression_obj.get("dialects") or []:
         if isinstance(entry, dict) and entry.get("dialect") is not None:
             result[entry["dialect"]] = _normalize(entry.get("expression"))
+    if isinstance(expression_obj.get("sql"), str) and expression_obj["sql"].strip():
+        result["OSSIE_SQL_2026"] = _normalize(expression_obj["sql"])
     return result
 
 
