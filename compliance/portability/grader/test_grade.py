@@ -121,6 +121,53 @@ def test_sql_form_is_the_authored_tag_next_to_an_ansi_entry():
     assert finding.tag_preserved is True
 
 
+
+def _both_forms(sql, ansi):
+    return _doc(metrics=[{"name": "total", "expression": {
+        "sql": sql,
+        "dialects": [{"dialect": "ANSI_SQL", "expression": ansi}],
+    }}])
+
+
+def test_an_unchanged_ansi_entry_next_to_sql_is_portable():
+    # A converter that reads and writes only `dialects` returns the ANSI_SQL entry.
+    returned = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(a)")])
+    finding = _only(grade.grade(_both_forms("SUM(a)", "SUM(a)"), returned))
+    assert finding.outcome == grade.PORTABLE
+    assert finding.tag_preserved is False
+
+
+def test_an_unchanged_ansi_entry_that_differs_from_sql_is_portable():
+    # Both forms were authored, so returning either one unchanged is portable.
+    returned = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(b)")])
+    finding = _only(grade.grade(_both_forms("SUM(a)", "SUM(b)"), returned))
+    assert finding.outcome == grade.PORTABLE
+
+
+def test_returning_both_forms_unchanged_preserves_the_tag():
+    src = _both_forms("SUM(a)", "SUM(b)")
+    finding = _only(grade.grade(src, src))
+    assert finding.outcome == grade.PORTABLE
+    assert finding.tag_preserved is True
+
+
+def test_an_unchanged_ossiesql_entry_next_to_a_different_sql_is_portable():
+    src = _doc(metrics=[{"name": "total", "expression": {
+        "sql": "SUM(a)",
+        "dialects": [{"dialect": "OSSIE_SQL_2026", "expression": "SUM(b)"}],
+    }}])
+    returned = _doc(metrics=[_metric("total", "OSSIE_SQL_2026", "SUM(b)")])
+    finding = _only(grade.grade(src, returned))
+    assert finding.outcome == grade.PORTABLE
+    assert finding.tag_preserved is True
+
+
+def test_neither_form_returned_unchanged_is_rewritten():
+    returned = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(c)")])
+    finding = _only(grade.grade(_both_forms("SUM(a)", "SUM(b)"), returned))
+    assert finding.outcome == grade.REWRITTEN
+
+
 def test_relabeled_when_tag_changes_but_text_is_kept():
     src = _doc(metrics=[_metric("total", "OSSIE_SQL_2026", "SUM(sales.amount)")])
     returned = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(sales.amount)")])
