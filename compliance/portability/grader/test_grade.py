@@ -162,6 +162,18 @@ def test_an_unchanged_ossiesql_entry_next_to_a_different_sql_is_portable():
     assert finding.tag_preserved is True
 
 
+
+def test_an_unchanged_second_dialect_entry_is_portable():
+    # Without `sql` too: an expression with two portable entries is portable when the
+    # converter returns the second one unchanged (it used to grade by the first only).
+    src = _doc(metrics=[{"name": "total", "expression": {"dialects": [
+        {"dialect": "ANSI_SQL", "expression": "SUM(a)"},
+        {"dialect": "OSSIE_SQL_2026", "expression": "SUM(b)"},
+    ]}}])
+    returned = _doc(metrics=[_metric("total", "OSSIE_SQL_2026", "SUM(b)")])
+    assert _only(grade.grade(src, returned)).outcome == grade.PORTABLE
+
+
 def test_neither_form_returned_unchanged_is_rewritten():
     returned = _doc(metrics=[_metric("total", "ANSI_SQL", "SUM(c)")])
     finding = _only(grade.grade(_both_forms("SUM(a)", "SUM(b)"), returned))
